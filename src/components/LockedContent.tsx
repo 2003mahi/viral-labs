@@ -37,7 +37,7 @@ const LockedContent = ({ data, unlocked, onUnlock }: Props) => {
             className="bg-accent text-accent-foreground hover:bg-accent/90 glow-accent font-semibold px-6"
           >
             <Zap className="w-4 h-4 mr-2" />
-            Unlock Full Content with Crypto
+            Unlock Full Content — ₹199
           </Button>
         </div>
       </motion.div>

@@ -141,7 +141,7 @@ const Index = () => {
           transition={{ delay: 0.5 }}
           className="text-center text-xs text-muted-foreground pt-8"
         >
-          Built with AI · Payments via Cryptomus
+          Built with AI · Payments via Razorpay
         </motion.p>
       </div>
     </div>
