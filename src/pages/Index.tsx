@@ -44,19 +44,49 @@ const Index = () => {
     }
   };
 
-  const handleUnlock = () => {
-    // Cryptomus placeholder - redirect to checkout
-    const merchantId = "YOUR_MERCHANT_ID";
-    const checkoutUrl = `https://pay.cryptomus.com/pay?merchant=${merchantId}&amount=9.99&currency=USD&order_id=${Date.now()}`;
-    
-    toast({
-      title: "Redirecting to Cryptomus",
-      description: "You'll be redirected to complete the crypto payment.",
-    });
+  const handleUnlock = async () => {
+    try {
+      // 1. Create Razorpay order
+      const { data: orderData, error: orderError } = await supabase.functions.invoke("create-razorpay-order", {
+        body: { amount: 199, currency: "INR" },
+      });
+      if (orderError) throw orderError;
 
-    // For demo, unlock directly. In production, redirect & verify webhook.
-    // window.open(checkoutUrl, "_blank");
-    setUnlocked(true);
+      // 2. Open Razorpay checkout
+      const options = {
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "ViralPost AI",
+        description: "Unlock Premium Content",
+        order_id: orderData.orderId,
+        handler: async (response: any) => {
+          // 3. Verify payment on server
+          const { data: verifyData, error: verifyError } = await supabase.functions.invoke("verify-razorpay-payment", {
+            body: {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            },
+          });
+          if (verifyError) throw verifyError;
+
+          if (verifyData.verified) {
+            setUnlocked(true);
+            toast({ title: "Payment Successful!", description: "Premium content unlocked." });
+          } else {
+            toast({ title: "Verification Failed", description: "Payment could not be verified.", variant: "destructive" });
+          }
+        },
+        theme: { color: "#6366f1" },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Payment Error", description: err.message || "Something went wrong.", variant: "destructive" });
+    }
   };
 
   return (
